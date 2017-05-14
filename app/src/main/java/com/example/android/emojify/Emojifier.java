@@ -28,7 +28,13 @@ import com.google.android.gms.vision.face.FaceDetector;
 
 class Emojifier {
 
-    private static final String LOG_TAG = Emojifier.class.getSimpleName();
+    private static final String LOG_TAG ="tago";
+
+    private static final double SMILING_THRESHOLD=0.15;
+    private static final double EYES_OPEN =0.5;
+
+
+
 
     /**
      * Method for detecting faces in a bitmap.
@@ -61,8 +67,8 @@ class Emojifier {
                 Face face = faces.valueAt(i);
 
                 // Log the classification probabilities for each face.
-                getClassifications(face);
-                // TODO (6): Change the call to getClassifications to whichEmoji() to log the appropriate emoji for the facial expression.
+                whichEmoji(face);
+                // TODO (6): Change the call to whichEmoji to whichEmoji() to log the appropriate emoji for the facial expression.
             }
 
         }
@@ -78,20 +84,75 @@ class Emojifier {
      *
      * @param face The face to get the classification probabilities.
      */
-    private static void getClassifications(Face face){
-        // TODO (2): Change the name of the getClassifications() method to whichEmoji() (also change the log statements)
+    private static void whichEmoji(Face face){
+
+        double leftEye=face.getIsLeftEyeOpenProbability();
+        double rightEye=face.getIsRightEyeOpenProbability();
+        double smile=face.getIsSmilingProbability();
+
+
+
+        // TODO (2): Change the name of the whichEmoji() method to whichEmoji() (also change the log statements)
         // Log all the probabilities
-        Log.d(LOG_TAG, "getClassifications: smilingProb = " + face.getIsSmilingProbability());
-        Log.d(LOG_TAG, "getClassifications: leftEyeOpenProb = "
-                + face.getIsLeftEyeOpenProbability());
-        Log.d(LOG_TAG, "getClassifications: rightEyeOpenProb = "
-                + face.getIsRightEyeOpenProbability());
+        Log.d(LOG_TAG, "whichEmoji: smilingProb = " + smile);
+        Log.d(LOG_TAG, "whichEmoji: leftEyeOpenProb = " + leftEye);
+        Log.d(LOG_TAG, "whichEmoji: rightEyeOpenProb = " + rightEye);
 
         // TODO (3): Create threshold constants for a person smiling, and and eye being open by taking pictures of yourself and your friends and noting the logs.
         // TODO (4): Create 3 boolean variables to track the state of the facial expression based on the thresholds you set in the previous step: smiling, left eye closed, right eye closed.
         // TODO (5): Create an if/else system that selects the appropriate emoji based on the above booleans and log the result.
+
+
+        boolean isSmiling=smile>SMILING_THRESHOLD;
+        boolean leftWinking=leftEye< EYES_OPEN && rightEye> EYES_OPEN;
+        boolean rightWinking=rightEye< EYES_OPEN && leftEye> EYES_OPEN;
+        boolean eyesClosed=rightEye>EYES_OPEN&&leftEye>EYES_OPEN;
+        boolean eyesOpen=rightEye>EYES_OPEN&&leftEye>EYES_OPEN;
+        boolean frowning=  smile<SMILING_THRESHOLD;
+
+        Emoji emoji;
+
+
+        if (isSmiling&&eyesOpen){
+            emoji= Emoji.OPEN_EYES_SMILING;
+        }else if(isSmiling && eyesClosed){
+            emoji=Emoji.CLOSED_EYE_SMILING;
+        }else if(frowning && eyesOpen){
+            emoji= Emoji.OPEN_EYES_FROWNING;
+        }else if(frowning && eyesClosed){
+            emoji= Emoji.CLOSED_EYE_FROWNING;
+        }else if (leftWinking&&isSmiling) {
+            emoji=Emoji.LEFT_WINK;
+        }else if (rightWinking&&isSmiling){
+            emoji=Emoji.RIGHT_WINK;
+
+        }else if(leftWinking && frowning){
+            emoji=Emoji.LEFT_WINK_FROWNING;
+
+        }else if(rightWinking && frowning){
+            emoji=Emoji.RIGHT_WINK_FROWNING;
+        }else {
+            Log.d(LOG_TAG, "Emoji was not detected" );
+            return;
+        }
+
+        Log.d(LOG_TAG, emoji.name() );
+
+
+
     }
 
 
     // TODO (1): Create an enum class called Emoji that contains all the possible emoji you can make (smiling, frowning, left wink, right wink, left wink frowning, right wink frowning, closed eye smiling, close eye frowning).
+
+    public enum Emoji{
+        LEFT_WINK,
+        RIGHT_WINK,
+        CLOSED_EYE_SMILING,
+        CLOSED_EYE_FROWNING,
+        OPEN_EYES_SMILING,
+        OPEN_EYES_FROWNING,
+        LEFT_WINK_FROWNING ,
+        RIGHT_WINK_FROWNING ,
+    }
 }
